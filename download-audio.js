@@ -3,12 +3,14 @@ var exportProgram = {
 	$els: null,
 	downloadAudio: true,
 	downloadExportFile: false,
+	startTime: null
 };
 
 function runProgram() {
 	console.clear();
 	exportProgram.index = 0;
 	exportProgram.$els = $('table.vocab-table:has(input[type=checkbox]:checked)');
+	exportProgram.startTime = new Date();
 
 	if (exportProgram.$els.length === 0) {
 		console.warn('No vocabulary selected.');
@@ -83,6 +85,9 @@ function performExport() {
 	console.log('\n\n\n\n');
 	console.log('Reversed: ');
 	console.log(reverseContents);
+	console.log('\n\n\n\n');
+
+	var timeTaken = (new Date() - exportProgram.startTime) / 1000.0;
 
 	if (exportProgram.downloadExportFile) {
 		saveContent('data:,' + exportContents, 'export.txt');
