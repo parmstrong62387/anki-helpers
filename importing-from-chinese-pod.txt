@@ -1,0 +1,43 @@
+Instructions for importing a deck from chinese pod into anki:
+
+1) Export vocab from chinese pod in .txt format for ANKI
+
+2) Load into sublime text:
+Replace
+(.*?)\t(.*?)\t(.*)
+with
+\1\t\2 (\3)
+
+3) For the reverse flashcards deck:
+Replace
+(.*?)\t(.*?)\t(.*)
+with
+\2 (\3)\t\1
+
+4) In ANKI, import the deck, enabling HTML on the import
+
+
+
+
+
+USING EXPORT SCRIPT (includes audio):
+
+1) Select the new terms to export on the vocabulary page
+
+2) Run the export.js script
+
+3) Copy downloaded audio to <ANKI_HOME>\User 1\collection.media
+
+4) In the export.txt replace 
+([^A-Za-z]+)([^\]+])
+with
+\1\t\2\n
+
+5) Add the new terms to the file in <ANKI_HOME>\chinese_vocab_anki.txt
+
+6) Copy the modified chinese_vocab_anki.txt over the reverse-cards.txt file, replace
+(.*)\t(.*)
+with
+\2\t\1
+
+7) Sync decks to ANKI web for backup
