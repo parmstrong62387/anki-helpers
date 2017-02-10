@@ -88,6 +88,7 @@ function performExport() {
 	console.log('\n\n\n\n');
 
 	var timeTaken = (new Date() - exportProgram.startTime) / 1000.0;
+	console.info('Export completed. Downloaded ' + exportProgram.$els.length + ' words in ' + timeTaken + ' seconds.');
 
 	if (exportProgram.downloadExportFile) {
 		saveContent('data:,' + exportContents, 'export.txt');
