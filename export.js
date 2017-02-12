@@ -1,9 +1,9 @@
 var exportProgram = {
-	index: 0,
-	$els: null,
-	downloadAudio: true,
-	downloadExportFile: false,
-	startTime: null
+	downloadAudio: true, //Set to true to download the associated audio files
+	downloadExportFile: false, //Set to true to download a file containing the export in ANKI format
+	index: 0, //Do not modify
+	$els: null, //Do not modify
+	startTime: null //Do not modify
 };
 
 function runProgram() {
@@ -15,22 +15,22 @@ function runProgram() {
 	if (exportProgram.$els.length === 0) {
 		console.warn('No vocabulary selected.');
 	} else {
-		$(document).bind("ajaxSuccess", clickAudio);
-		clickAudio();
+		$(document).bind("ajaxSuccess", expandNextVocabularyWord);
+		expandNextVocabularyWord();
 	}
 }
 
-function clickAudio() {
+function expandNextVocabularyWord() {
 	var $els = exportProgram.$els;
 	var index = exportProgram.index;
 
 	if (index < $els.length) {
-		console.info('Clicking ' + (index+1) + ' out of ' + $els.length + '...');
+		console.info('Expanding ' + (index+1) + ' out of ' + $els.length + '...');
 		$els.eq(index).find('span.fa-expand').click();
 
 		exportProgram.index++;
 	} else {
-		$(document).unbind("ajaxSuccess", clickAudio);
+		$(document).unbind("ajaxSuccess", expandNextVocabularyWord);
 		performExport();
 	}
 }
@@ -45,6 +45,12 @@ function saveContent(url, fileName)
     	link.download = url;
     }
     link.click();
+}
+
+function checkAllInRange(startIndex, endIndex) {
+	startIndex = startIndex || 0;
+	endIndex = endIndex || 100;
+	$('table.vocab-table input[type=checkbox]').slice(startIndex, endIndex).attr('checked', true);
 }
 
 function performExport() {
