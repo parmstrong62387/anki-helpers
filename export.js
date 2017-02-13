@@ -71,7 +71,12 @@ if (typeof exportProgram === 'undefined') {
 						var index = Number($(this).data('index'));
 						exportProgram.openPromptDialog(index+1);
 					}
-				}
+				},
+				open: function() {
+			        $(this).closest(".ui-dialog")
+			        .find(".ui-dialog-titlebar-close")
+			        .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+			    }
 			});
 		},
 
@@ -112,7 +117,12 @@ if (typeof exportProgram === 'undefined') {
 						document.execCommand("copy");
 						window.getSelection().removeAllRanges();
 					}
-				}
+				},
+				open: function() {
+			        $(this).closest(".ui-dialog")
+			        .find(".ui-dialog-titlebar-close")
+			        .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+			    }
 			});
 		},
 
@@ -134,7 +144,12 @@ if (typeof exportProgram === 'undefined') {
 					'OK' : function() {
 						exportProgram.closeWarnDialog();
 					}
-				}
+				},
+				open: function() {
+			        $(this).closest(".ui-dialog")
+			        .find(".ui-dialog-titlebar-close")
+			        .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+			    }
 			});
 		},
 
