@@ -47,8 +47,8 @@ if (typeof exportProgram === 'undefined') {
 		'beginExport': function() {
 			exportProgram.startTime = new Date();
 			exportProgram.openResultsDialog();
-			$(document).bind("ajaxSuccess", exportProgram.expandNextVocabularyWord);
-			exportProgram.expandNextVocabularyWord();
+			$(document).bind("ajaxSuccess", exportProgram.fetchNextVocabularyWord);
+			exportProgram.fetchNextVocabularyWord();
 		},
 
 		'initPromptDialog': function(index) {
@@ -79,7 +79,6 @@ if (typeof exportProgram === 'undefined') {
 			if (index < exportProgram.prompts.length) {
 				var id = 'dialog-' + exportProgram.prompts[index].key;
 				$('#' + id).dialog('open');
-				$('div[aria-describedby="' + id + '"]').css({'position': 'absolute', 'top': '300px'});
 			} else {
 				exportProgram.beginExport();
 			}
@@ -121,7 +120,6 @@ if (typeof exportProgram === 'undefined') {
 			var $dialog = $('#results-dialog');
 			$dialog.find('textarea').val('');
 			$dialog.dialog('open');
-			$('div[aria-describedby="results-dialog"]').css({'position': 'absolute', 'top': '100px'});
 		},
 
 		'closeResultsDialog': function() {
@@ -163,13 +161,19 @@ if (typeof exportProgram === 'undefined') {
 			$textarea.val(val);
 		},
 
-		'expandNextVocabularyWord': function() {
+		'fetchNextVocabularyWord': function() {
 			var $els = exportProgram.$els;
 			var index = exportProgram.index;
 
+			if (index > 0) {
+				var previousIndex = index - 1;
+				var $el = $els.eq(previousIndex);
+				exportProgram.exportWord($el);
+			}
+
 			if (index < $els.length) {
 				exportProgram.appendTextarea(exportProgram.$console, 
-					'Expanding ' + (index+1) + ' out of ' + $els.length + '...', 
+					'Fetching data for word ' + (index+1) + ' out of ' + $els.length + '...', 
 					true);
 				var $el = $els.eq(index);
 				exportProgram.index++;
@@ -177,12 +181,11 @@ if (typeof exportProgram === 'undefined') {
 				if ($el.find('span.fa-expand').length > 0) {
 					$el.find('span.fa-expand').click();
 				} else {
-					exportProgram.expandNextVocabularyWord();
+					exportProgram.fetchNextVocabularyWord();
 				}
 				
 			} else {
-				$(document).unbind("ajaxSuccess", exportProgram.expandNextVocabularyWord);
-				exportProgram.performExport();
+				exportProgram.completeExport();
 			}
 		},
 
@@ -204,55 +207,47 @@ if (typeof exportProgram === 'undefined') {
 			$('table.vocab-table input[type=checkbox]').slice(startIndex, endIndex).attr('checked', true);
 		},
 
-		'performExport': function() {
-			var exportContents = '';
-			var reverseContents = '';
+		'exportWord': function($wordTable) {
+			var $embed = $wordTable.next().next().find('embed');
 
-			$('table.vocab-table:has(span.fa-compress)').each(function (){
-				var $wordTable = $(this);
-				var $embed = $wordTable.next().next().find('embed');
+			var character = $wordTable.find('td:eq(1)').text().trim();
+			var pinyin = $wordTable.find('td:eq(2)').text().trim();
+			var definition = $wordTable.find('td:eq(3)').text().trim();
+			
+			var exportLine = character + '\t' + definition + ' (' + pinyin + ')';
+			var reverseLine = definition + ' (' + pinyin + ')';
 
-				var character = $wordTable.find('td:eq(1)').text().trim();
-				var pinyin = $wordTable.find('td:eq(2)').text().trim();
-				var definition = $wordTable.find('td:eq(3)').text().trim();
-				
-				var exportLine = character + '\t' + definition + ' (' + pinyin + ')';
-				var reverseLine = definition + ' (' + pinyin + ')';
+			if ($embed.length > 0) {
+				var url = /url=(.*?\.mp3)/.exec($embed.attr('flashvars'))[1];
+				var fileName = url.substring(url.lastIndexOf('/')+1);
+				exportLine += '[sound:' + fileName +']';
+				reverseLine += '[sound:' + fileName +']';
 
-				if ($embed.length > 0) {
-					var url = /url=(.*?\.mp3)/.exec($embed.attr('flashvars'))[1];
-					var fileName = url.substring(url.lastIndexOf('/')+1);
-					exportLine += '[sound:' + fileName +']';
-					reverseLine += '[sound:' + fileName +']';
-
-					if (exportProgram.downloadAudio) {
-						exportProgram.saveContent(url);
-					}
+				if (exportProgram.downloadAudio) {
+					exportProgram.saveContent(url);
 				}
+			}
 
-				reverseLine += '\t' + character;
+			reverseLine += '\t' + character;
 
-				exportProgram.appendTextarea(exportProgram.$normalFlashcards, exportLine);
-				exportProgram.appendTextarea(exportProgram.$reverseFlashcards, reverseLine);
+			exportProgram.appendTextarea(exportProgram.$normalFlashcards, exportLine);
+			exportProgram.appendTextarea(exportProgram.$reverseFlashcards, reverseLine);
 
-				if (exportContents.length > 0) {
-					exportContents += '\n';
-					reverseContents += '\n';
-				}
+			$wordTable.find('span.fa-compress').click();
+		},
 
-				exportContents += exportLine;
-				reverseContents += reverseLine;
-			});
-
+		'completeExport': function() {
+			$(document).unbind("ajaxSuccess", exportProgram.fetchNextVocabularyWord);
 			var timeTaken = (new Date() - exportProgram.startTime) / 1000.0;
 			exportProgram.appendTextarea(exportProgram.$console, 
-				'Export completed. Downloaded ' + exportProgram.$els.length + ' words in ' + timeTaken + ' seconds.',
+				'Export completed. Exported ' + exportProgram.$els.length + ' words in ' + timeTaken + ' seconds.\n',
 				true);
 
-			if (exportProgram.downloadExportFile) {
-				exportProgram.saveContent('data:,' + exportContents, 'export.txt');
-			}
+			// if (exportProgram.downloadExportFile) {
+			// 	exportProgram.saveContent('data:,' + exportContents, 'export.txt');
+			// }
 		}
+
 	};
 }
 
