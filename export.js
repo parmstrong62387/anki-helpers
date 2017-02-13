@@ -124,10 +124,14 @@ var exportProgram = {
 		$('#results-dialog').dialog('close');
 	},
 
-	'appendTextarea': function($textarea, message) {
+	'appendTextarea': function($textarea, message, reverse) {
 		var val = $textarea.val();
 		if (val.trim().length > 0) {
-			val = message + '\n' + val;
+			if (reverse) {
+				val = message + '\n' + val;
+			} else {
+				val = val + '\n' + message;
+			}
 		} else {
 			val = message;
 		}
@@ -139,7 +143,9 @@ var exportProgram = {
 		var index = exportProgram.index;
 
 		if (index < $els.length) {
-			exportProgram.appendTextarea(exportProgram.$console, 'Expanding ' + (index+1) + ' out of ' + $els.length + '...');
+			exportProgram.appendTextarea(exportProgram.$console, 
+				'Expanding ' + (index+1) + ' out of ' + $els.length + '...', 
+				true);
 			var $el = $els.eq(index);
 			exportProgram.index++;
 
@@ -214,7 +220,9 @@ var exportProgram = {
 		});
 
 		var timeTaken = (new Date() - exportProgram.startTime) / 1000.0;
-		exportProgram.appendTextarea(exportProgram.$console, 'Export completed. Downloaded ' + exportProgram.$els.length + ' words in ' + timeTaken + ' seconds.');
+		exportProgram.appendTextarea(exportProgram.$console, 
+			'Export completed. Downloaded ' + exportProgram.$els.length + ' words in ' + timeTaken + ' seconds.',
+			true);
 
 		if (exportProgram.downloadExportFile) {
 			exportProgram.saveContent('data:,' + exportContents, 'export.txt');
