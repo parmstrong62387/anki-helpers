@@ -29,7 +29,7 @@ var exportProgram = {
 			exportProgram.initialized = true;
 		}
 
-		console.clear();
+		exportProgram.closeResultsDialog();
 		exportProgram.index = 0;
 		exportProgram.$els = $('table.vocab-table:has(input[type=checkbox]:checked)');
 
@@ -73,7 +73,9 @@ var exportProgram = {
 
 	'openPromptDialog': function(index) {
 		if (index < exportProgram.prompts.length) {
-			$('#dialog-' + exportProgram.prompts[index].key).dialog('open');
+			var id = 'dialog-' + exportProgram.prompts[index].key;
+			$('#' + id).dialog('open');
+			$('div[aria-describedby="' + id + '"]').css({'position': 'absolute', 'top': '300px'});
 		} else {
 			exportProgram.beginExport();
 		}
@@ -115,12 +117,17 @@ var exportProgram = {
 		var $dialog = $('#results-dialog');
 		$dialog.find('textarea').val('');
 		$dialog.dialog('open');
+		$('div[aria-describedby="results-dialog"]').css({'position': 'absolute', 'top': '100px'});
+	},
+
+	'closeResultsDialog': function() {
+		$('#results-dialog').dialog('close');
 	},
 
 	'appendTextarea': function($textarea, message) {
 		var val = $textarea.val();
 		if (val.trim().length > 0) {
-			val = val + '\n' + message;
+			val = message + '\n' + val;
 		} else {
 			val = message;
 		}
