@@ -15,13 +15,17 @@ var exportProgram = {
 			'key': 'downloadExportFile'
 		}
 	],
+	'$console': null,
+	'$normalFlashcards': null,
+	'$reverseFlashcards': null,
 
 	'runProgram': function() {
 		if (!exportProgram.initialized) {
 			$('head').append('<link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">');
 			for (var i = 0; i < exportProgram.prompts.length; i++) {
-				exportProgram.initDialog(i);
+				exportProgram.initPromptDialog(i);
 			}
+			exportProgram.initResultsDialog();
 			exportProgram.initialized = true;
 		}
 
@@ -32,17 +36,18 @@ var exportProgram = {
 		if (exportProgram.$els.length === 0) {
 			console.warn('No vocabulary selected.');
 		} else {
-			exportProgram.openDialog(0);
+			exportProgram.openPromptDialog(0);
 		}
 	},
 
 	'beginExport': function() {
 		exportProgram.startTime = new Date();
+		exportProgram.openResultsDialog();
 		$(document).bind("ajaxSuccess", exportProgram.expandNextVocabularyWord);
 		exportProgram.expandNextVocabularyWord();
 	},
 
-	'initDialog': function(index) {
+	'initPromptDialog': function(index) {
 		var title = exportProgram.prompts[index].title;
 		var key = exportProgram.prompts[index].key;
 		var id = 'dialog-' + key;
@@ -54,19 +59,19 @@ var exportProgram = {
 					exportProgram[key] = true;
 					$(this).dialog("close");
 					var index = Number($(this).data('index'));
-					exportProgram.openDialog(index+1);
+					exportProgram.openPromptDialog(index+1);
 				},
 				'No' : function() {
 					exportProgram[key] = false;
 					$(this).dialog("close");
 					var index = Number($(this).data('index'));
-					exportProgram.openDialog(index+1);
+					exportProgram.openPromptDialog(index+1);
 				}
 			}
 		});
 	},
 
-	'openDialog': function(index) {
+	'openPromptDialog': function(index) {
 		if (index < exportProgram.prompts.length) {
 			$('#dialog-' + exportProgram.prompts[index].key).dialog('open');
 		} else {
@@ -74,12 +79,56 @@ var exportProgram = {
 		}
 	},
 
+	'initResultsDialog': function() {
+		var resultsDialogMarkup = '<div id="results-dialog" title="Export Program">';
+		resultsDialogMarkup += '<h4>Console</h4>';
+		resultsDialogMarkup += '<textarea class="ui-widget ui-state-default ui-corner-all" id="console" style="resize: none; width: 100%; height: 150px; margin-bottom: 20px" readonly></textarea>';
+		resultsDialogMarkup += '<h4>Normal Flashcards</h4>';
+		resultsDialogMarkup += '<textarea class="ui-widget ui-state-default ui-corner-all" id="normal-flashcards" style="resize: none; width: 100%; height: 150px; margin-bottom: 20px" readonly></textarea>';
+		resultsDialogMarkup += '<h4>Reverse Flashcards</h4>';
+		resultsDialogMarkup += '<textarea class="ui-widget ui-state-default ui-corner-all" id="reverse-flashcards" style="resize: none; width: 100%; height: 150px; margin-bottom: 20px" readonly></textarea>';
+		resultsDialogMarkup += '</div>';
+		$('body').append(resultsDialogMarkup);
+		exportProgram.$console = $('#results-dialog #console');
+		exportProgram.$normalFlashcards = $('#results-dialog #normal-flashcards');
+		exportProgram.$reverseFlashcards = $('#results-dialog #reverse-flashcards');
+		$('#results-dialog').dialog({
+			'autoOpen': false,
+			'width': 600,
+			'height': 800,
+			'buttons' : {
+				'Copy Normal Flashcards' : function() {
+					
+				},
+				'Copy Reverse Flashcards' : function() {
+					
+				}
+			}
+		});
+	},
+
+	'openResultsDialog': function() {
+		var $dialog = $('#results-dialog');
+		$dialog.find('textarea').val('');
+		$dialog.dialog('open');
+	},
+
+	'appendTextarea': function($textarea, message) {
+		var val = $textarea.val();
+		if (val.trim().length > 0) {
+			val = val + '\n' + message;
+		} else {
+			val = message;
+		}
+		$textarea.val(val);
+	},
+
 	'expandNextVocabularyWord': function() {
 		var $els = exportProgram.$els;
 		var index = exportProgram.index;
 
 		if (index < $els.length) {
-			console.info('Expanding ' + (index+1) + ' out of ' + $els.length + '...');
+			exportProgram.appendTextarea(exportProgram.$console, 'Expanding ' + (index+1) + ' out of ' + $els.length + '...');
 			var $el = $els.eq(index);
 			exportProgram.index++;
 
@@ -124,37 +173,37 @@ var exportProgram = {
 			var character = $wordTable.find('td:eq(1)').text().trim();
 			var pinyin = $wordTable.find('td:eq(2)').text().trim();
 			var definition = $wordTable.find('td:eq(3)').text().trim();
-
-			if (exportContents.length > 0) {
-				exportContents += '\n';
-				reverseContents += '\n';
-			}
-			exportContents += character + '\t' + definition + ' (' + pinyin + ')';
-			reverseContents += definition + ' (' + pinyin + ')';
+			
+			var exportLine = character + '\t' + definition + ' (' + pinyin + ')';
+			var reverseLine = definition + ' (' + pinyin + ')';
 
 			if ($embed.length > 0) {
 				var url = /url=(.*?\.mp3)/.exec($embed.attr('flashvars'))[1];
 				var fileName = url.substring(url.lastIndexOf('/')+1);
-				exportContents += '[sound:' + fileName +']';
-				reverseContents += '[sound:' + fileName +']';
+				exportLine += '[sound:' + fileName +']';
+				reverseLine += '[sound:' + fileName +']';
 
 				if (exportProgram.downloadAudio) {
 					exportProgram.saveContent(url);
 				}
 			}
 
-			reverseContents += '\t' + character;
+			reverseLine += '\t' + character;
+
+			exportProgram.appendTextarea(exportProgram.$normalFlashcards, exportLine);
+			exportProgram.appendTextarea(exportProgram.$reverseFlashcards, reverseLine);
+
+			if (exportContents.length > 0) {
+				exportContents += '\n';
+				reverseContents += '\n';
+			}
+
+			exportContents += exportLine;
+			reverseContents += reverseLine;
 		});
 
-		console.log('Normal: ');
-		console.log(exportContents);
-		console.log('\n\n\n\n');
-		console.log('Reversed: ');
-		console.log(reverseContents);
-		console.log('\n\n\n\n');
-
 		var timeTaken = (new Date() - exportProgram.startTime) / 1000.0;
-		console.info('Export completed. Downloaded ' + exportProgram.$els.length + ' words in ' + timeTaken + ' seconds.');
+		exportProgram.appendTextarea(exportProgram.$console, 'Export completed. Downloaded ' + exportProgram.$els.length + ' words in ' + timeTaken + ' seconds.');
 
 		if (exportProgram.downloadExportFile) {
 			exportProgram.saveContent('data:,' + exportContents, 'export.txt');
