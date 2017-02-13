@@ -94,14 +94,18 @@ var exportProgram = {
 		exportProgram.$reverseFlashcards = $('#results-dialog #reverse-flashcards');
 		$('#results-dialog').dialog({
 			'autoOpen': false,
-			'width': 600,
+			'width': 800,
 			'height': 800,
 			'buttons' : {
 				'Copy Normal Flashcards' : function() {
-					
+					exportProgram.$normalFlashcards[0].select();
+					document.execCommand("copy");
+					window.getSelection().removeAllRanges();
 				},
 				'Copy Reverse Flashcards' : function() {
-					
+					exportProgram.$reverseFlashcards[0].select();
+					document.execCommand("copy");
+					window.getSelection().removeAllRanges();
 				}
 			}
 		});
