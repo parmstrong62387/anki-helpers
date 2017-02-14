@@ -28,17 +28,19 @@ if (typeof exportProgram === 'undefined') {
 				}
 				exportProgram.initResultsDialog();
 				exportProgram.initWarnDialog();
+				exportProgram.initSelectDialog();
 				exportProgram.initialized = true;
 			}
 
 			exportProgram.closeResultsDialog();
 			exportProgram.closeWarnDialog();
+			exportProgram.closeSelectDialog();
 
 			exportProgram.index = 0;
 			exportProgram.$els = $('table.vocab-table:has(input[type=checkbox]:checked)');
 
 			if (exportProgram.$els.length === 0) {
-				exportProgram.showWarnDialog('No vocabulary selected.');
+				exportProgram.showSelectDialog();
 			} else {
 				exportProgram.openPromptDialog(0);
 			}
@@ -160,6 +162,49 @@ if (typeof exportProgram === 'undefined') {
 
 		'closeWarnDialog': function() {
 			$('#warn-dialog').dialog('close');
+		},
+
+		'initSelectDialog': function() {
+			var dialogMarkup = '<div id="select-dialog" title="Select Range">';
+			dialogMarkup += '<input type="Number" id="select-from" class="form-control" style="width: 100px; display: inline-block; margin-right: 10px;">';
+			dialogMarkup += ' to ';
+			dialogMarkup += '<input type="Number" id="select-to" class="form-control" style="width: 100px; display: inline-block; margin-left: 10px;">';
+			dialogMarkup += '</div>';
+			$('body').append(dialogMarkup);
+			$('#select-dialog').dialog({
+				'buttons' : {
+					'OK' : function() {
+						var from = $('#select-from').val().trim();
+						if (from.length === 0) {
+							from = 0;
+						}
+						var to = $('#select-to').val().trim();
+						if (to.length === 0) {
+							to = 100;
+						}
+						exportProgram.checkAllInRange(Number(from), Number(to));
+						exportProgram.closeSelectDialog();
+					},
+					'Cancel': function() {
+						exportProgram.closeSelectDialog();
+					}
+				},
+				open: function() {
+					$('#select-from').val('0');
+					$('#select-to').val('100');
+			        $(this).closest(".ui-dialog")
+			        .find(".ui-dialog-titlebar-close")
+			        .html("<span class='ui-button-icon-primary ui-icon ui-icon-closethick'></span>");
+			    }
+			});
+		},
+
+		'showSelectDialog': function() {
+			$('#select-dialog').dialog('open');
+		},
+
+		'closeSelectDialog': function() {
+			$('#select-dialog').dialog('close');
 		},
 
 		'appendTextarea': function($textarea, message, reverse) {
