@@ -75,6 +75,8 @@ if (typeof exportProgram === 'undefined') {
 					return;
 				}
 
+				e.preventDefault(); //Prevent the context menu from opening
+
 				exportProgram.closeAllDialogs();
 				exportProgram.$selectedSentence = $tr;
 				exportProgram.openPromptDialog(0);
