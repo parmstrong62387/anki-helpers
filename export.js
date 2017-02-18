@@ -19,6 +19,9 @@ if (typeof exportProgram === 'undefined') {
 		'$console': null,
 		'$normalFlashcards': null,
 		'$reverseFlashcards': null,
+		'VOCAB': 'vocab',
+		'SENTENCE': 'sentence',
+		'mode': '',
 
 		'run': function() {
 			if (!exportProgram.initialized) {
@@ -29,6 +32,15 @@ if (typeof exportProgram === 'undefined') {
 				exportProgram.initResultsDialog();
 				exportProgram.initWarnDialog();
 				exportProgram.initSelectDialog();
+
+				if ($('div#vocab_list_container').length === 0) {
+					exportProgram.mode = exportProgram.SENTENCE;
+
+					exportProgram.bindContextMenu();
+				} else {
+					exportProgram.mode = exportProgram.VOCAB;
+				}
+
 				exportProgram.initialized = true;
 			}
 
@@ -36,13 +48,15 @@ if (typeof exportProgram === 'undefined') {
 			exportProgram.closeWarnDialog();
 			exportProgram.closeSelectDialog();
 
-			exportProgram.index = 0;
-			exportProgram.$els = $('table.vocab-table:has(input[type=checkbox]:checked)');
+			if (exportProgram.mode === exportProgram.VOCAB) {
+				exportProgram.index = 0;
+				exportProgram.$els = $('table.vocab-table:has(input[type=checkbox]:checked)');
 
-			if (exportProgram.$els.length === 0) {
-				exportProgram.showSelectDialog();
-			} else {
-				exportProgram.openPromptDialog(0);
+				if (exportProgram.$els.length === 0) {
+					exportProgram.showSelectDialog();
+				} else {
+					exportProgram.openPromptDialog(0);
+				}
 			}
 		},
 
@@ -270,30 +284,39 @@ if (typeof exportProgram === 'undefined') {
 		'exportWord': function($wordTable) {
 			var $embed = $wordTable.next().next().find('embed');
 
-			var character = $wordTable.find('td:eq(1)').text().trim();
+			var chinese = $wordTable.find('td:eq(1)').text().trim();
 			var pinyin = $wordTable.find('td:eq(2)').text().trim();
 			var definition = $wordTable.find('td:eq(3)').text().trim();
+			var english = definition + ' (' + pinyin + ')';
+			var audioSource = '';
 			
-			var exportLine = character + '\t' + definition + ' (' + pinyin + ')';
-			var reverseLine = definition + ' (' + pinyin + ')';
-
 			if ($embed.length > 0) {
-				var url = /url=(.*?\.mp3)/.exec($embed.attr('flashvars'))[1];
-				var fileName = url.substring(url.lastIndexOf('/')+1);
+				var audioSource = /url=(.*?\.mp3)/.exec($embed.attr('flashvars'))[1];
+			}
+
+			exportProgram.addFlashcard(audioSource, chinese, english);
+
+			$wordTable.find('span.fa-compress').click();
+		},
+
+		'addFlashcard': function(audioSource, chinese, english) {
+			var exportLine = chinese + '\t' + english;
+			var reverseLine = english;
+
+			if (audioSource && audioSource.length > 0) {
+				var fileName = audioSource.substring(audioSource.lastIndexOf('/')+1);
 				exportLine += '[sound:' + fileName +']';
 				reverseLine += '[sound:' + fileName +']';
 
 				if (exportProgram.downloadAudio) {
-					exportProgram.saveContent(url);
+					exportProgram.saveContent(audioSource);
 				}
 			}
 
-			reverseLine += '\t' + character;
+			reverseLine += '\t' + chinese;
 
 			exportProgram.appendTextarea(exportProgram.$normalFlashcards, exportLine);
 			exportProgram.appendTextarea(exportProgram.$reverseFlashcards, reverseLine);
-
-			$wordTable.find('span.fa-compress').click();
 		},
 
 		'completeExport': function() {
