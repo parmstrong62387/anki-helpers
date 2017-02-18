@@ -21,6 +21,7 @@ if (typeof exportProgram === 'undefined') {
 		'$reverseFlashcards': null,
 		'VOCAB': 'vocab',
 		'SENTENCE': 'sentence',
+		'$selectedSentence': null,
 		'mode': '',
 
 		'run': function() {
@@ -44,9 +45,7 @@ if (typeof exportProgram === 'undefined') {
 				exportProgram.initialized = true;
 			}
 
-			exportProgram.closeResultsDialog();
-			exportProgram.closeWarnDialog();
-			exportProgram.closeSelectDialog();
+			exportProgram.closeAllDialogs();
 
 			if (exportProgram.mode === exportProgram.VOCAB) {
 				exportProgram.index = 0;
@@ -58,6 +57,58 @@ if (typeof exportProgram === 'undefined') {
 					exportProgram.openPromptDialog(0);
 				}
 			}
+		},
+
+		'closeAllDialogs': function() {
+			exportProgram.closeResultsDialog();
+			exportProgram.closeWarnDialog();
+			exportProgram.closeSelectDialog();
+			exportProgram.closePromptDialogs();
+		},
+
+		'bindContextMenu': function() {
+			$(document).on('contextmenu', function(e) { 
+				var $tr = $(e.target).closest('tr');
+
+				//Do nothing if a sentence wasn't clicked on
+				if ($tr.length === 0 || $tr.find('audio').length === 0) {
+					return;
+				}
+
+				exportProgram.closeAllDialogs();
+				exportProgram.$selectedSentence = $tr;
+				exportProgram.openPromptDialog(0);
+			});
+		},
+
+		'exportSentence': function() {
+
+			var $firstSentenceChild = exportProgram.$selectedSentence.find('td:eq(0)').children().eq(0);
+			var audioSource = exportProgram.$selectedSentence.find('audio').attr('src');
+			var chinese = '';
+			var english = '';
+			var encounteredBR = false;
+			var el = $firstSentenceChild[0];
+			while (el) {
+				if (el.nodeType === 1) { //Element node
+					if (el.tagName.toLowerCase() === 'br') {
+						encounteredBR = true;
+					} else {
+						chinese += el.textContent.trim();
+					}			
+				} else if (el.nodeType === 3) { //Text node
+					if (encounteredBR) {
+						english = el.nodeValue.trim();
+					} else {		
+						chinese += el.nodeValue.trim();
+					}
+				}
+				
+				el = el.nextSibling;
+			}
+
+			exportProgram.openResultsDialog();
+			exportProgram.addFlashcard(audioSource, chinese, english);
 		},
 
 		'beginExport': function() {
@@ -96,12 +147,23 @@ if (typeof exportProgram === 'undefined') {
 			});
 		},
 
+		'closePromptDialogs': function() {
+			for (var i = 0; i < exportProgram.prompts.length; i++) {
+				var id = 'dialog-' + exportProgram.prompts[i].key;
+				$('#' + id).dialog('close');
+			}
+		},
+
 		'openPromptDialog': function(index) {
 			if (index < exportProgram.prompts.length) {
 				var id = 'dialog-' + exportProgram.prompts[index].key;
 				$('#' + id).dialog('open');
 			} else {
-				exportProgram.beginExport();
+				if (exportProgram.mode === exportProgram.VOCAB) {
+					exportProgram.beginExport();
+				} else if (exportProgram.mode === exportProgram.SENTENCE) {
+					exportProgram.exportSentence();
+				}
 			}
 		},
 
