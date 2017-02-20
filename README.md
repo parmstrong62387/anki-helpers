@@ -1,3 +1,25 @@
-# anki-helpers
+# Chinese POD to ANKI Export
 
-![mario 64 paintings](https://lh3.googleusercontent.com/UdTd4SaxYHr5_Rb9hVAOxSQSivzX7Av0fVx44YO_gzkSPS2tYkSvgtIBJ8HpJRBKuBw1prmwSUW3ohLNXCtQA-0HWDXQrmJ-VI6LvT57qWcPOamD5tVFB7630ZWAXovvMPVjyuNFf-RqGf9UreiVl7F8G4UH2mIoNlS59FHaTnHmSiSDGq_mQcefqLJ676OqKoMO7Y-WEA6dQAb1jekFkNAzJGJQLxcdIhGzN9GNwEsnN4_kfjVe3Xa_M0NEOpMpGXlwi8mNEBsRa8gQjQiYjCRdVdLqUscrKiQ4cWcNOCAcETq_ndOGl8FuLbbJemlkax5sAQ3dpXS2ltmv2J2GswC7s6Ql_6sXv-eM1cU4GnNrAHOgXnrPvyBi7vLansIz9gq4OWgeOjT7MtnVqtCrz5V__jGy4mrRhatfLDvaNxLcgRZKz9PYSn9Ay-BRKvum5ln9hZ9og_2tGI0QdApZjkB65mt4UZR--6xFhDAz0DoIXcfDTMrJUE5efMDEfz4Y9Qp4X1mwEIcZ0CVwHjq4L9x8LH6OI8Sh7Vd9a5J4mui4jUrLfHErbdx5RXXVKybsgqZWF7HPACkVWWv3BTJEzUdJpDgRCAFbKVAW0xsIbd-xvz_8RiDa=w500-h275-no)
+This is a plugin which can be used to export vocabulary from Chinese pod to ANKI. Chinese pod already provides this service, but their export doesn't include the associated audio files, and this one does.
+
+## Installing the plugin
+The plugin can be installed as a bookmarklet. This basically is a bookmark in your browser which executes JavaScript.
+
+Create a new bookmark in your browser. The title can be whatever you want, and the URL should be the contents of this file: [export.scriplet.js](./export.scriplet.js)
+
+## Using the plugin
+The plugin will export all vocabulary items which are checked on the vocabulary section of Chinese pod. If no items are checked, the program will prompt you to select a range of items.
+PUT IMAGE HERE
+
+If items are checked, running the program will export the vocabulary items. First, the program will prompt you if you want to download audio, and a file containing the contents of the export.
+
+When the export starts a dialog will pop up which shows the progress of the export. It will also print a message when it's done.
+PUT IMAGE HERE
+
+After the export is complete, if you chose to download audio, the downloaded audio files will need to be copied to your ANKI home directory. The audio files should be downloaded into your local Downloads folder. The ANKI target directory is \<ANKI HOME\>/\<USER\>/collection.media.
+
+The program creates Chinese to English flashcards as well as English to Chinese flashcards (for character writing practice). To import to ANKI, click the button at the bottom of the dialog to copy the contents you want to import.
+PUT IMAGE HERE
+
+Save the exported vocabulary in a text file, then use ANKI's import feature.
+PUT IMAGE HERE
